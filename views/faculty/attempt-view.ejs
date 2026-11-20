@@ -1,0 +1,28 @@
+<%- include('../partials/head') %>
+<div class="breadcrumb"><a href="/faculty/quizzes/<%= quiz.id %>/results">← Results for <%= quiz.title %></a></div>
+<div class="page-head">
+  <div><h1><%= attempt.name %></h1><p class="sub"><%= attempt.email %><%= attempt.institution_id ? ` · ID ${attempt.institution_id}` : '' %></p></div>
+  <% if (attempt.status !== 'in_progress') { %><div class="score-ring <%= scoreClass(pct(attempt.score, attempt.max_score)) %>" style="--p: <%= pct(attempt.score, attempt.max_score) %>; width: 96px; height: 96px"><div style="width: 76px; height: 76px"><strong style="font-size: 1.1rem"><%= pct(attempt.score, attempt.max_score) %>%</strong></div></div><% } %>
+</div>
+<div class="card mb-2">
+  <dl class="kv">
+    <dt>Status</dt><dd><%= { in_progress: 'In progress', submitted: 'Submitted', auto_submitted: 'Auto-submitted (time ran out)' }[attempt.status] %></dd>
+    <dt>Score</dt><dd><%= attempt.status !== 'in_progress' ? `${attempt.score} / ${attempt.max_score}` : '—' %></dd>
+    <dt>Started</dt><dd><time data-ts="<%= attempt.started_at %>"><%= fmtDate(attempt.started_at) %></time></dd>
+    <dt>Submitted</dt><dd><% if (attempt.submitted_at) { %><time data-ts="<%= attempt.submitted_at %>"><%= fmtDate(attempt.submitted_at) %></time> (<%= fmtDuration(attempt.submitted_at - attempt.started_at) %>)<% } else { %>—<% } %></dd>
+    <dt>Tab switches</dt><dd><span class="<%= attempt.tab_switches >= 3 ? 'badge badge-bad' : '' %>"><%= attempt.tab_switches %></span></dd>
+  </dl>
+</div>
+<div class="card">
+  <h2>Answer sheet <span class="muted small" style="font-weight: 400">(in the order this student saw the questions)</span></h2>
+  <% paper.forEach((q, i) => { const correct = q.options.find((o) => o.is_correct); const ok = q.selected && correct && q.selected === correct.id; %>
+    <div class="review-q">
+      <div class="row between"><strong>Q<%= i + 1 %>.</strong><span class="badge <%= !q.selected ? '' : ok ? 'badge-good' : 'badge-bad' %>"><%= !q.selected ? 'Skipped' : ok ? 'Correct' : 'Wrong' %></span></div>
+      <p class="pre-line mt-1" style="font-weight: 600"><%= q.text %></p>
+      <% q.options.forEach((o, j) => { %>
+        <div class="review-opt <%= o.is_correct ? 'correct' : o.id === q.selected ? 'wrong' : '' %>"><strong><%= String.fromCharCode(65 + j) %></strong><span><%= o.text %></span><span class="tag"><%= o.id === q.selected ? 'Chosen' : '' %></span></div>
+      <% }) %>
+    </div>
+  <% }) %>
+</div>
+<%- include('../partials/foot') %>

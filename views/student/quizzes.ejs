@@ -1,0 +1,17 @@
+<%- include('../partials/head') %>
+<div class="page-head"><div><h1>Quizzes</h1><p class="sub">Pick a quiz to take. Upcoming quizzes open automatically at their scheduled time.</p></div></div>
+<nav class="tabs" aria-label="Quiz filters">
+  <a href="?tab=live" class="<%= tab === 'live' ? 'active' : '' %>">Live <span class="count"><%= counts.live %></span></a>
+  <a href="?tab=upcoming" class="<%= tab === 'upcoming' ? 'active' : '' %>">Upcoming <span class="count"><%= counts.upcoming %></span></a>
+  <a href="?tab=completed" class="<%= tab === 'completed' ? 'active' : '' %>">Completed <span class="count"><%= counts.completed %></span></a>
+  <a href="?tab=missed" class="<%= tab === 'missed' ? 'active' : '' %>">Missed <span class="count"><%= counts.missed %></span></a>
+</nav>
+<div class="card">
+  <% if (!quizzes.length) { %>
+    <div class="empty"><div class="big"><%= { live: '✅', upcoming: '🗓️', completed: '📝', missed: '🎉' }[tab] %></div>
+      <%= { live: 'No quizzes are open right now.', upcoming: 'Nothing scheduled yet.', completed: "You haven't completed any quizzes yet.", missed: "You haven't missed any quizzes." }[tab] %></div>
+  <% } else { %>
+    <ul class="list"><% quizzes.forEach((q) => { %><%- include('../partials/student-quiz-row', { q }) %><% }) %></ul>
+  <% } %>
+</div>
+<%- include('../partials/foot') %>

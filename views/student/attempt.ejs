@@ -1,0 +1,72 @@
+<%- include('../partials/head', { bare: true }) %>
+<div class="quiz-bar">
+  <div class="container">
+    <div class="title"><%= quiz.title %></div>
+    <span class="save-state" id="save-state" aria-live="polite"></span>
+    <div class="timer" id="timer" role="timer" aria-label="Time remaining"><span>--:--</span></div>
+  </div>
+  <div class="time-progress"><span id="time-progress" style="width: 100%"></span></div>
+</div>
+<main>
+  <div class="container quiz-shell no-select">
+    <noscript><div class="alert alert-error mb-2">JavaScript is required to take quizzes.</div></noscript>
+    <div class="quiz-layout">
+      <div>
+        <% paper.forEach((q, i) => { %>
+          <section class="card question-card" data-qid="<%= q.id %>" <%= i ? 'hidden' : '' %> aria-labelledby="q-<%= q.id %>">
+            <div class="q-num"><span>Question <%= i + 1 %> of <%= paper.length %></span><span><%= q.marks %> mark<%= q.marks === 1 ? '' : 's' %></span></div>
+            <div class="q-text" id="q-<%= q.id %>" tabindex="-1"><%= q.text %></div>
+            <div class="choices" role="radiogroup" aria-labelledby="q-<%= q.id %>">
+              <% q.options.forEach((o, j) => { %>
+                <label class="choice <%= q.selected === o.id ? 'selected' : '' %>">
+                  <input type="radio" name="q<%= q.id %>" value="<%= o.id %>" <%= q.selected === o.id ? 'checked' : '' %>>
+                  <span class="letter"><%= String.fromCharCode(65 + j) %></span>
+                  <span><%= o.text %></span>
+                </label>
+              <% }) %>
+            </div>
+            <div class="row mt-1"><button type="button" class="btn btn-ghost btn-sm" data-clear>Clear answer</button></div>
+          </section>
+        <% }) %>
+        <div class="quiz-nav">
+          <button type="button" class="btn btn-outline" id="prev-btn">← Previous</button>
+          <button type="button" class="btn btn-ghost" id="flag-btn" aria-pressed="false">⚐ Flag for review</button>
+          <button type="button" class="btn btn-primary" id="next-btn">Next →</button>
+          <button type="button" class="btn btn-success hidden" id="finish-btn" data-open-submit>Finish &amp; submit</button>
+        </div>
+      </div>
+      <aside class="card">
+        <div class="row between mb-1"><strong>Questions</strong><span class="muted small">Answered <span id="answered-count">0</span></span></div>
+        <div class="progress mb-2"><span id="answered-bar" style="width: 0"></span></div>
+        <div class="palette">
+          <% paper.forEach((q, i) => { %><button type="button" aria-label="Go to question <%= i + 1 %>"><%= i + 1 %></button><% }) %>
+        </div>
+        <div class="legend"><span><i class="a"></i>Answered</span><span><i class="f"></i>Flagged</span><span><i></i>Not answered</span></div>
+        <button type="button" class="btn btn-primary btn-block mt-2" data-open-submit>Submit quiz</button>
+        <p class="muted small mt-1 mb-0">Tip: press A–<%= String.fromCharCode(64 + Math.max(...paper.map((q) => q.options.length))) %> to answer and ←/→ to move.</p>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<dialog id="submit-dialog">
+  <form method="dialog">
+    <div class="dialog-body">
+      <h3>Submit your quiz?</h3>
+      <p class="muted mb-0" id="submit-summary"></p>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn btn-outline" value="cancel">Keep working</button>
+      <button class="btn btn-success" value="submit">Submit now</button>
+    </div>
+  </form>
+</dialog>
+<div id="submitting-overlay" class="hidden" style="position: fixed; inset: 0; z-index: 200; background: rgba(10,12,30,.6); display: grid; place-items: center">
+  <div class="card center"><div style="font-size: 2rem">⏳</div><strong id="submitting-text">Submitting…</strong></div>
+</div>
+<div class="toast-zone" id="toasts" aria-live="assertive"></div>
+<script type="application/json" id="attempt-data"><%- JSON.stringify(clientData) %></script>
+<script src="/static/js/app.js"></script>
+<script src="/static/js/attempt.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<%- include('../partials/head') %>
+<div class="page-head"><div><h1>My classrooms</h1><p class="sub">Join a classroom with the code your teacher gives you.</p></div></div>
+<div class="card mb-2">
+  <form method="post" action="/student/classrooms/join" class="row" style="align-items: flex-end">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="field mb-0" style="flex: 1; min-width: 200px">
+      <label for="code">Classroom code</label>
+      <input id="code" name="code" type="text" placeholder="e.g. K7PM2Q" maxlength="12" autocomplete="off" autocapitalize="characters" data-uppercase required value="<%= code %>" style="font-family: var(--mono); letter-spacing: .15em; font-weight: 700">
+    </div>
+    <button class="btn btn-primary" type="submit">Join classroom</button>
+  </form>
+</div>
+<% if (!classrooms.length) { %>
+  <div class="card empty"><div class="big">🏫</div>You're not in any classrooms yet. Enter a code above to join one.</div>
+<% } else { %>
+  <div class="grid-3">
+    <% classrooms.forEach((c) => { %>
+      <a class="card card-link classroom-card" href="/student/classrooms/<%= c.id %>">
+        <div class="banner" <%- include('../partials/classroom-banner', { id: c.id }) %>><%= c.name %></div>
+        <div class="muted small mb-1"><%= c.subject || 'Classroom' %> · <%= c.faculty_name %></div>
+        <div class="meta"><span>👥 <%= c.student_count %> students</span><span>📝 <%= c.quiz_count %> quizzes</span></div>
+      </a>
+    <% }) %>
+  </div>
+<% } %>
+<%- include('../partials/foot') %>

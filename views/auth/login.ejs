@@ -1,0 +1,27 @@
+<%- include('../partials/head') %>
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <h1>Welcome back</h1>
+    <p class="muted">Sign in to your QuizHub account.</p>
+    <% if (error) { %><div class="alert alert-error mb-2" role="alert"><%= error %></div><% } %>
+    <form method="post" action="/login" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required value="<%= email %>" autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-primary btn-block btn-lg" type="submit">Sign in</button>
+    </form>
+    <p class="center mt-2 mb-0">New here? <a href="/register">Create an account</a></p>
+    <div class="demo-box">
+      <strong>Demo accounts</strong> (after <code>npm run seed</code>):<br>
+      Faculty: <code>faculty@quizhub.test</code> · Student: <code>student@quizhub.test</code><br>
+      Password: <code>password123</code>
+    </div>
+  </div>
+</div>
+<%- include('../partials/foot') %>

@@ -1,0 +1,26 @@
+<li class="quiz-item">
+  <div class="info">
+    <a class="title" href="/student/quizzes/<%= q.id %>"><%= q.title %></a>
+    <div class="meta">
+      <span><%= q.classroom_name %></span>
+      <span>⏱ <%= q.duration_minutes %> min</span>
+      <span>❓ <%= q.question_count %> questions</span>
+      <% if (q.bucket === 'upcoming') { %><span>Opens <time data-ts="<%= q.start_at %>"><%= fmtDate(q.start_at) %></time></span>
+      <% } else if (q.bucket === 'live') { %><span>Closes <time data-ts="<%= q.end_at %>"><%= fmtDate(q.end_at) %></time></span>
+      <% } else { %><span>Closed <time data-ts="<%= q.end_at %>" data-format="date"><%= fmtDate(q.end_at) %></time></span><% } %>
+    </div>
+  </div>
+  <div class="row">
+    <% if (q.bucket === 'completed') { %>
+      <span class="badge badge-<%= scoreClass(q.percent) %>"><%= q.percent %>%</span>
+      <a class="btn btn-outline btn-sm" href="/student/attempts/<%= q.attempt_id %>/result">View result</a>
+    <% } else if (q.bucket === 'live') { %>
+      <span class="badge badge-live">Live</span>
+      <a class="btn btn-primary btn-sm" href="/student/quizzes/<%= q.id %>"><%= q.attempt_status === 'in_progress' ? 'Resume' : 'Take quiz' %></a>
+    <% } else if (q.bucket === 'upcoming') { %>
+      <span class="badge badge-upcoming">in <span data-countdown="<%= q.start_at %>" data-reload></span></span>
+    <% } else { %>
+      <span class="badge badge-bad">Missed</span>
+    <% } %>
+  </div>
+</li>

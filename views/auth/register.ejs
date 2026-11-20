@@ -1,0 +1,55 @@
+<%- include('../partials/head') %>
+<div class="auth-wrap">
+  <div class="card auth-card">
+    <h1>Create your account</h1>
+    <p class="muted">It takes less than a minute.</p>
+    <form method="post" action="/register" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <span class="label">I am a…</span>
+        <div class="role-picker">
+          <label><input type="radio" name="role" value="student" <%= values.role !== 'faculty' ? 'checked' : '' %>><span class="role-option"><b class="emoji">🎓</b><b>Student</b><span>Join classrooms &amp; take quizzes</span></span></label>
+          <label><input type="radio" name="role" value="faculty" <%= values.role === 'faculty' ? 'checked' : '' %>><span class="role-option"><b class="emoji">🧑‍🏫</b><b>Faculty</b><span>Create classrooms &amp; quizzes</span></span></label>
+        </div>
+      </div>
+      <div class="field <%= errors.name ? 'has-error' : '' %>">
+        <label for="name">Full name</label>
+        <input id="name" name="name" type="text" autocomplete="name" required value="<%= values.name || '' %>">
+        <%- include('../partials/field-error', { name: 'name' }) %>
+      </div>
+      <div class="field <%= errors.email ? 'has-error' : '' %>">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required value="<%= values.email || '' %>">
+        <%- include('../partials/field-error', { name: 'email' }) %>
+      </div>
+      <div class="field <%= errors.institution_id ? 'has-error' : '' %>">
+        <label for="institution_id">Student / employee ID <span class="muted">(optional)</span></label>
+        <input id="institution_id" name="institution_id" type="text" value="<%= values.institution_id || '' %>">
+        <div class="help">Shown to faculty in results spreadsheets.</div>
+        <%- include('../partials/field-error', { name: 'institution_id' }) %>
+      </div>
+      <div class="form-grid">
+        <div class="field <%= errors.password ? 'has-error' : '' %>">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+          <%- include('../partials/field-error', { name: 'password' }) %>
+        </div>
+        <div class="field <%= errors.confirm_password ? 'has-error' : '' %>">
+          <label for="confirm_password">Confirm password</label>
+          <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required>
+          <%- include('../partials/field-error', { name: 'confirm_password' }) %>
+        </div>
+      </div>
+      <% if (needsInvite) { %>
+        <div class="field <%= errors.invite_code ? 'has-error' : '' %>" data-faculty-only>
+          <label for="invite_code">Faculty invite code <span class="muted">(faculty only)</span></label>
+          <input id="invite_code" name="invite_code" type="text" autocomplete="off">
+          <%- include('../partials/field-error', { name: 'invite_code' }) %>
+        </div>
+      <% } %>
+      <button class="btn btn-primary btn-block btn-lg" type="submit">Create account</button>
+    </form>
+    <p class="center mt-2 mb-0">Already registered? <a href="/login">Sign in</a></p>
+  </div>
+</div>
+<%- include('../partials/foot') %>

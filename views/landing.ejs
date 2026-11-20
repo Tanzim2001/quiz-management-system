@@ -1,0 +1,35 @@
+<%- include('partials/head') %>
+<section class="hero">
+  <div>
+    <span class="badge badge-primary">For teachers &amp; students</span>
+    <h1 class="mt-1">Run timed quizzes for your classrooms, <span class="grad">without the paperwork.</span></h1>
+    <p class="lead">Faculty build MCQ quizzes, schedule them and get an Excel sheet of results automatically. Students join with a code, take quizzes against a countdown and track their progress over time.</p>
+    <div class="row mt-2">
+      <a class="btn btn-primary btn-lg" href="/register?role=student">I'm a student</a>
+      <a class="btn btn-outline btn-lg" href="/register?role=faculty">I'm faculty</a>
+    </div>
+    <p class="muted small mt-2">Already have an account? <a href="/login">Sign in</a></p>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <div class="row between">
+      <strong>Data Structures · Quiz 3</strong>
+      <span class="timer warn"><span>04:12</span></span>
+    </div>
+    <div class="progress mt-1"><span style="width: 60%"></span></div>
+    <p class="mt-2 mb-0" style="font-weight: 600">Which data structure works on a First-In-First-Out basis?</p>
+    <div class="mock-q">A · Stack</div>
+    <div class="mock-q sel">B · Queue</div>
+    <div class="mock-q">C · Binary tree</div>
+    <div class="mock-q">D · Hash table</div>
+  </div>
+</section>
+
+<section class="grid-3 mt-3">
+  <div class="card feature"><div class="ico">🏫</div><h3>Classrooms with join codes</h3><p class="muted mb-0">Create a classroom, share a 6-letter code, and students are in.</p></div>
+  <div class="card feature"><div class="ico">🗓️</div><h3>Scheduled, timed quizzes</h3><p class="muted mb-0">Set the open/close window and duration. Students see it ahead of time and the timer runs on the server.</p></div>
+  <div class="card feature"><div class="ico">📊</div><h3>Results in a spreadsheet</h3><p class="muted mb-0">Attendance, scores, item analysis and tab-switch counts, downloadable as Excel or CSV.</p></div>
+  <div class="card feature"><div class="ico">🛡️</div><h3>Fair by design</h3><p class="muted mb-0">Shuffled questions and options, tab-switch tracking and automatic submission when time is up.</p></div>
+  <div class="card feature"><div class="ico">💾</div><h3>Never lose an answer</h3><p class="muted mb-0">Every click autosaves. If the browser closes, students pick up where they left off.</p></div>
+  <div class="card feature"><div class="ico">📈</div><h3>Performance dashboard</h3><p class="muted mb-0">Students see their scores against the class average, plus a leaderboard and answer reviews.</p></div>
+</section>
+<%- include('partials/foot') %>

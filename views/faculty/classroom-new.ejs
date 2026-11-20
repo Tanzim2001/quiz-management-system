@@ -1,0 +1,11 @@
+<%- include('../partials/head') %>
+<div class="breadcrumb"><a href="/faculty">Dashboard</a> / New classroom</div>
+<div class="page-head"><div><h1>Create a classroom</h1><p class="sub">You'll get a join code to share with your students.</p></div></div>
+<div class="card" style="max-width: 680px">
+  <form method="post" action="/faculty/classrooms" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <%- include('../partials/classroom-fields') %>
+    <div class="form-actions"><button class="btn btn-primary" type="submit">Create classroom</button><a class="btn btn-ghost" href="/faculty">Cancel</a></div>
+  </form>
+</div>
+<%- include('../partials/foot') %>

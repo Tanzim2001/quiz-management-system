@@ -1,0 +1,35 @@
+<%
+  const q = typeof question !== 'undefined' && question ? question : { text: '', explanation: '', marks: 1, options: [{ text: '' }, { text: '' }, { text: '' }, { text: '' }] };
+  const correctIdx = q.options.findIndex((o) => o.is_correct);
+%>
+<form method="post" action="<%= action %>" data-question-form novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="alert alert-error hidden mb-1" data-form-error role="alert"></div>
+  <div class="field">
+    <label for="text-<%= formId %>">Question</label>
+    <textarea id="text-<%= formId %>" name="text" rows="3" required maxlength="2000" placeholder="Type the question…"><%= q.text %></textarea>
+  </div>
+  <span class="label">Options <span class="muted" style="font-weight: 400">— select the correct answer</span></span>
+  <div data-options>
+    <% q.options.forEach((o, i) => { %>
+      <div class="option-row">
+        <span class="letter"><%= String.fromCharCode(65 + i) %></span>
+        <input type="text" name="options" value="<%= o.text %>" maxlength="500" placeholder="Option <%= String.fromCharCode(65 + i) %>">
+        <label class="radio"><input type="radio" name="correct" value="<%= i %>" <%= i === correctIdx ? 'checked' : '' %>>Correct</label>
+        <button type="button" class="icon-btn" data-remove-option aria-label="Remove option" title="Remove option">✕</button>
+      </div>
+    <% }) %>
+  </div>
+  <button type="button" class="btn btn-ghost btn-sm mb-2" data-add-option>+ Add option</button>
+  <div class="form-grid">
+    <div class="field">
+      <label for="marks-<%= formId %>">Marks</label>
+      <input id="marks-<%= formId %>" name="marks" type="number" min="0.25" max="100" step="0.25" value="<%= q.marks %>">
+    </div>
+    <div class="field">
+      <label for="exp-<%= formId %>">Explanation <span class="muted">(optional)</span></label>
+      <input id="exp-<%= formId %>" name="explanation" type="text" maxlength="2000" value="<%= q.explanation || '' %>" placeholder="Shown to students during review">
+    </div>
+  </div>
+  <button class="btn btn-primary" type="submit"><%= submitLabel %></button>
+</form>

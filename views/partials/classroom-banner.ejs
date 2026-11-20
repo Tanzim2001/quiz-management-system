@@ -1,0 +1,4 @@
+<%
+  const gradients = [['#6366f1', '#06b6d4'], ['#8b5cf6', '#ec4899'], ['#0ea5e9', '#22c55e'], ['#f59e0b', '#ef4444'], ['#14b8a6', '#6366f1'], ['#ec4899', '#f97316']];
+  const g = gradients[(id || 0) % gradients.length];
+%>style="--c1: <%= g[0] %>; --c2: <%= g[1] %>"

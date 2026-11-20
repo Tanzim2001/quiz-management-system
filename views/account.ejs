@@ -1,0 +1,44 @@
+<%- include('partials/head') %>
+<div class="page-head"><div><h1>My account</h1><p class="sub">Member since <time data-ts="<%= user.created_at %>" data-format="date"><%= fmtDate(user.created_at) %></time></p></div></div>
+<div class="card" style="max-width: 640px">
+  <form method="post" action="/account" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="form-grid">
+      <div class="field <%= errors.name ? 'has-error' : '' %>">
+        <label for="name">Full name</label>
+        <input id="name" name="name" type="text" value="<%= user.name %>" required>
+        <%- include('partials/field-error', { name: 'name' }) %>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" value="<%= user.email %>" disabled>
+      </div>
+      <div class="field <%= errors.institution_id ? 'has-error' : '' %>">
+        <label for="institution_id">Student / employee ID</label>
+        <input id="institution_id" name="institution_id" type="text" value="<%= user.institution_id || '' %>">
+        <%- include('partials/field-error', { name: 'institution_id' }) %>
+      </div>
+      <div class="field">
+        <label>Role</label>
+        <input type="text" value="<%= user.role === 'faculty' ? 'Faculty' : 'Student' %>" disabled>
+      </div>
+    </div>
+    <hr>
+    <h3>Change password</h3>
+    <p class="muted small">Leave blank to keep your current password.</p>
+    <div class="form-grid">
+      <div class="field <%= errors.current_password ? 'has-error' : '' %>">
+        <label for="current_password">Current password</label>
+        <input id="current_password" name="current_password" type="password" autocomplete="current-password">
+        <%- include('partials/field-error', { name: 'current_password' }) %>
+      </div>
+      <div class="field <%= errors.new_password ? 'has-error' : '' %>">
+        <label for="new_password">New password</label>
+        <input id="new_password" name="new_password" type="password" autocomplete="new-password" minlength="8">
+        <%- include('partials/field-error', { name: 'new_password' }) %>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Save changes</button>
+  </form>
+</div>
+<%- include('partials/foot') %>

@@ -1,0 +1,83 @@
+<%- include('../partials/head') %>
+<div class="page-head">
+  <div><h1>Welcome, <%= user.name.split(' ')[0] %></h1><p class="sub">Your classrooms and quizzes at a glance.</p></div>
+  <a class="btn btn-primary" href="/faculty/classrooms/new">+ New classroom</a>
+</div>
+<div class="stats-row mb-2">
+  <div class="stat"><div class="ico">🏫</div><div><div class="label">Classrooms</div><div class="value"><%= totals.classrooms %></div></div></div>
+  <div class="stat"><div class="ico">👥</div><div><div class="label">Students</div><div class="value"><%= totals.students %></div></div></div>
+  <div class="stat"><div class="ico">📝</div><div><div class="label">Quizzes</div><div class="value"><%= totals.quizzes %></div></div></div>
+  <div class="stat"><div class="ico">✅</div><div><div class="label">Attempts</div><div class="value"><%= totals.attempts %></div></div></div>
+</div>
+
+<div class="layout-side">
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>Live &amp; scheduled</h2></div>
+      <% if (!active.length) { %><p class="muted mb-0">No quizzes are live or scheduled. Open a classroom to create one.</p><% } else { %>
+        <ul class="list">
+          <% active.forEach((q) => { %>
+            <li class="quiz-item">
+              <div class="info">
+                <a class="title" href="/faculty/quizzes/<%= q.id %>"><%= q.title %></a>
+                <div class="meta"><span><%= q.classroom_name %></span>
+                  <% if (q.status === 'live') { %><span>Closes <time data-ts="<%= q.end_at %>" data-format="relative"></time></span><span>👥 <%= q.attended %>/<%= q.enrolled %> started</span>
+                  <% } else { %><span>Opens <time data-ts="<%= q.start_at %>"><%= fmtDate(q.start_at) %></time></span><% } %></div>
+              </div>
+              <div class="row"><%- include('../partials/status-badge', { status: q.status }) %><a class="btn btn-outline btn-sm" href="/faculty/quizzes/<%= q.id %>/results">Results</a></div>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Recent quiz performance</h2><span class="muted small">Average score &amp; attendance</span></div>
+      <% if (!chartData.recent.length) { %><div class="empty"><div class="big">📊</div>Charts appear once your first quiz closes.</div>
+      <% } else { %><div class="chart-box"><canvas data-chart="faculty-recent" role="img" aria-label="Average score and attendance for recent quizzes"></canvas></div><% } %>
+    </div>
+    <% if (recent.length) { %>
+      <div class="card pad-0">
+        <div class="card-head" style="padding: 18px 18px 0"><h2>Recently closed</h2></div>
+        <div class="table-wrap">
+          <table class="table stack-mobile">
+            <thead><tr><th>Quiz</th><th>Classroom</th><th class="num">Attended</th><th class="num">Average</th><th></th></tr></thead>
+            <tbody>
+              <% recent.forEach((q) => { %>
+                <tr><td data-label="Quiz"><strong><%= q.title %></strong></td><td data-label="Classroom"><%= q.classroom_name %></td>
+                  <td data-label="Attended" class="num"><%= q.attended %>/<%= q.enrolled %></td>
+                  <td data-label="Average" class="num"><% if (q.avg_percent !== null) { %><span class="badge badge-<%= scoreClass(q.avg_percent) %>"><%= Math.round(q.avg_percent * 10) / 10 %>%</span><% } else { %>—<% } %></td>
+                  <td><a class="btn btn-ghost btn-sm" href="/faculty/quizzes/<%= q.id %>/results">Results</a></td></tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } %>
+  </div>
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>My classrooms</h2></div>
+      <% if (!classrooms.length) { %>
+        <div class="empty"><div class="big">🏫</div>Create your first classroom and share its code with students.</div>
+        <a class="btn btn-primary btn-block" href="/faculty/classrooms/new">Create classroom</a>
+      <% } else { %>
+        <div class="grid">
+          <% classrooms.forEach((c) => { %>
+            <a class="card card-link classroom-card" href="/faculty/classrooms/<%= c.id %>" style="box-shadow: none">
+              <div class="banner" <%- include('../partials/classroom-banner', { id: c.id }) %>><%= c.name %></div>
+              <div class="meta"><span>👥 <%= c.student_count %></span><span>📝 <%= c.quiz_count %></span><span class="mono">🔑 <%= c.code %></span></div>
+            </a>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+    <% if (drafts.length) { %>
+      <div class="card">
+        <div class="card-head"><h2>Drafts</h2></div>
+        <ul class="list"><% drafts.forEach((q) => { %><li><a href="/faculty/quizzes/<%= q.id %>"><strong><%= q.title %></strong></a><div class="muted small"><%= q.classroom_name %></div></li><% }) %></ul>
+      </div>
+    <% } %>
+  </div>
+</div>
+<script type="application/json" id="chart-data"><%- JSON.stringify(chartData).replace(/</g, '\\u003c') %></script>
+<%- include('../partials/foot', { scripts: ['/static/vendor/chart.umd.min.js', '/static/js/charts.js'] }) %>

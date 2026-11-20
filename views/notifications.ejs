@@ -1,0 +1,45 @@
+<%- include('partials/head') %>
+<div class="page-head">
+  <div><h1>Notifications</h1><p class="sub">Quiz schedules, announcements and results.</p></div>
+  <% if (items.length) { %>
+    <form method="post" action="/notifications/clear" data-confirm="Delete all notifications?" data-confirm-label="Clear all" data-danger>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="btn btn-outline btn-sm">Clear all</button>
+    </form>
+  <% } %>
+</div>
+<div class="layout-side">
+  <div class="card">
+    <% if (!items.length) { %>
+      <div class="empty"><div class="big">🔔</div>You're all caught up.</div>
+    <% } else { %>
+      <% items.forEach((n) => { %>
+        <div class="notif <%= n.is_read ? '' : 'unread' %>">
+          <span class="dot" aria-hidden="true"></span>
+          <div>
+            <div class="msg"><% if (n.link) { %><a href="<%= n.link %>"><%= n.message %></a><% } else { %><%= n.message %><% } %></div>
+            <div class="muted small"><time data-ts="<%= n.created_at %>" data-format="relative"><%= fmtDate(n.created_at) %></time></div>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>⏰ Live &amp; next 24 hours</h2></div>
+    <% if (!upcoming.length) { %>
+      <p class="muted mb-0">No quizzes open or starting in the next 24 hours.</p>
+    <% } else { %>
+      <ul class="list">
+        <% upcoming.forEach((q) => { const live = q.start_at <= Date.now(); %>
+          <li>
+            <a href="/<%= user.role %>/quizzes/<%= q.id %>"><strong><%= q.title %></strong></a>
+            <div class="muted small"><%= q.classroom_name %></div>
+            <div class="small mt-1"><span class="badge <%= live ? 'badge-live' : 'badge-upcoming' %>"><%= live ? 'Live now' : 'Starts' %></span>
+              <% if (live) { %>closes <time data-ts="<%= q.end_at %>" data-format="relative"></time><% } else { %><time data-ts="<%= q.start_at %>" data-format="relative"></time><% } %></div>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </div>
+</div>
+<%- include('partials/foot') %>

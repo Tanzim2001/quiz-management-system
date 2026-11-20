@@ -1,0 +1,16 @@
+<div class="field <%= errors.name ? 'has-error' : '' %>">
+  <label for="name">Classroom name</label>
+  <input id="name" name="name" type="text" required maxlength="100" value="<%= values.name || '' %>" placeholder="e.g. CSE 220 – Data Structures (Section 2)">
+  <%- include('field-error', { name: 'name' }) %>
+</div>
+<div class="field <%= errors.subject ? 'has-error' : '' %>">
+  <label for="subject">Subject <span class="muted">(optional)</span></label>
+  <input id="subject" name="subject" type="text" maxlength="100" value="<%= values.subject || '' %>" placeholder="e.g. Computer Science">
+  <%- include('field-error', { name: 'subject' }) %>
+</div>
+<div class="field <%= errors.description ? 'has-error' : '' %>">
+  <label for="description">Description <span class="muted">(optional)</span></label>
+  <textarea id="description" name="description" maxlength="2000" placeholder="What students should know about this classroom"><%= values.description || '' %></textarea>
+  <%- include('field-error', { name: 'description' }) %>
+</div>
+<label class="check"><input type="checkbox" name="leaderboard_enabled" value="1" <%= values.leaderboard_enabled ? 'checked' : '' %>><span>Show leaderboards to students<small>Students see top scorers after each quiz closes, and a classroom ranking.</small></span></label>

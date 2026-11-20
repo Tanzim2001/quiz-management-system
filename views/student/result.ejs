@@ -1,0 +1,64 @@
+<%- include('../partials/head') %>
+<div class="breadcrumb"><a href="/student/classrooms/<%= quiz.classroom_id %>"><%= quiz.classroom_name %></a> / Result</div>
+<div class="page-head"><div><h1><%= quiz.title %></h1><p class="sub">Submitted <time data-ts="<%= attempt.submitted_at %>"><%= fmtDate(attempt.submitted_at) %></time><%= attempt.status === 'auto_submitted' ? ' · auto-submitted when time ran out' : '' %></p></div>
+  <a class="btn btn-outline" href="/student">Back to dashboard</a></div>
+
+<div class="layout-side">
+  <div class="stack">
+    <div class="card">
+      <div class="grid-2" style="align-items: center">
+        <div class="score-ring <%= scoreClass(percent) %>" style="--p: <%= percent %>">
+          <div><div><strong><%= percent %>%</strong><span class="muted small"><%= attempt.score %> / <%= attempt.max_score %></span></div></div>
+        </div>
+        <div>
+          <span class="badge <%= percent >= quiz.pass_percent ? 'badge-pass' : 'badge-fail' %> mb-1"><%= percent >= quiz.pass_percent ? '✓ Passed' : '✗ Below pass mark' %> (<%= quiz.pass_percent %>%)</span>
+          <dl class="kv mt-1">
+            <dt>Correct</dt><dd style="color: var(--success)"><%= attempt.correct_count %></dd>
+            <dt>Wrong</dt><dd style="color: var(--danger)"><%= attempt.wrong_count %></dd>
+            <dt>Skipped</dt><dd><%= attempt.unanswered_count %></dd>
+            <dt>Time taken</dt><dd><%= fmtDuration(attempt.submitted_at - attempt.started_at) %></dd>
+            <% if (stats.n > 1) { %><dt>Class average</dt><dd><%= Math.round(stats.avg * 10) / 10 %>%</dd><dt>Your rank</dt><dd><%= stats.rank %> of <%= stats.n %> so far</dd><% } %>
+          </dl>
+        </div>
+      </div>
+      <% if (quiz.negative_marking && attempt.wrong_count) { %><p class="muted small mt-2 mb-0">Includes −<%= Math.round(quiz.negative_marking * 100) %>% negative marking on wrong answers.</p><% } %>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Answer review</h2></div>
+      <% if (!review) { %>
+        <div class="empty"><div class="big">🔒</div>
+          <% if (quiz.review_policy === 'after_close') { %>Correct answers will be shown after the quiz closes on <time data-ts="<%= quiz.end_at %>"><%= fmtDate(quiz.end_at) %></time>.
+          <% } else { %>Your teacher has chosen not to show correct answers for this quiz.<% } %>
+        </div>
+      <% } else { %>
+        <% review.forEach((q, i) => { const chosen = q.selected; const correctOpt = q.options.find((o) => o.is_correct); const ok = chosen && correctOpt && chosen === correctOpt.id; %>
+          <div class="review-q">
+            <div class="row between"><strong>Q<%= i + 1 %>.</strong><span class="badge <%= !chosen ? '' : ok ? 'badge-good' : 'badge-bad' %>"><%= !chosen ? 'Skipped' : ok ? `+${q.marks}` : quiz.negative_marking ? `−${Math.round(q.marks * quiz.negative_marking * 100) / 100}` : '0' %></span></div>
+            <p class="pre-line mt-1" style="font-weight: 600"><%= q.text %></p>
+            <% q.options.forEach((o, j) => { const cls = o.is_correct ? 'correct' : o.id === chosen ? 'wrong' : ''; %>
+              <div class="review-opt <%= cls %>"><strong><%= String.fromCharCode(65 + j) %></strong><span><%= o.text %></span>
+                <span class="tag"><%= o.is_correct ? '✓ Correct' : o.id === chosen ? 'Your answer' : '' %><%= o.is_correct && o.id === chosen ? ' · yours' : '' %></span></div>
+            <% }) %>
+            <% if (q.explanation) { %><div class="explanation"><strong>Explanation:</strong> <span class="pre-line"><%= q.explanation %></span></div><% } %>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>🏆 Top scorers</h2></div>
+      <% if (!quiz.leaderboard_enabled) { %><p class="muted mb-0">The leaderboard is turned off for this classroom.</p>
+      <% } else if (!leaderboard) { %><p class="muted mb-0">The leaderboard appears when the quiz closes on <time data-ts="<%= quiz.end_at %>"><%= fmtDate(quiz.end_at) %></time>.</p>
+      <% } else { %>
+        <ol class="list">
+          <% leaderboard.forEach((r, i) => { %>
+            <li class="row between"><span><strong class="rank-<%= i + 1 %>"><%= i < 3 ? ['🥇', '🥈', '🥉'][i] : `${i + 1}.` %></strong> <%= r.name %></span><span class="muted small"><%= r.percent %>% · <%= fmtDuration(r.time_ms) %></span></li>
+          <% }) %>
+        </ol>
+      <% } %>
+    </div>
+  </div>
+</div>
+<%- include('../partials/foot') %>

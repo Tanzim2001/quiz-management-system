@@ -1,0 +1,98 @@
+<%- include('../partials/head') %>
+<div class="breadcrumb"><a href="/faculty">Dashboard</a> / <a href="/faculty/classrooms/<%= quiz.classroom_id %>"><%= quiz.classroom_name %></a> / <a href="/faculty/quizzes/<%= quiz.id %>"><%= quiz.title %></a> / Results</div>
+<div class="page-head">
+  <div>
+    <div class="row"><h1>Results</h1><%- include('../partials/status-badge', { status }) %></div>
+    <p class="sub"><%= quiz.title %> · <time data-ts="<%= quiz.start_at %>"><%= fmtDate(quiz.start_at) %></time> – <time data-ts="<%= quiz.end_at %>"><%= fmtDate(quiz.end_at) %></time></p>
+  </div>
+  <div class="row no-print">
+    <a class="btn btn-primary" href="/faculty/quizzes/<%= quiz.id %>/results.xlsx">⬇ Excel (.xlsx)</a>
+    <a class="btn btn-outline" href="/faculty/quizzes/<%= quiz.id %>/results.csv">⬇ CSV</a>
+  </div>
+</div>
+<% if (status === 'live') { %><div class="alert alert-info mb-2">The quiz is live; numbers update as students submit. Reload to refresh.</div><% } %>
+
+<div class="stats-row six mb-2">
+  <div class="stat"><div class="label">Enrolled</div><div class="value"><%= stats.enrolled %></div></div>
+  <div class="stat"><div class="label">Attended</div><div class="value"><%= stats.attended %></div><div class="hint"><%= stats.enrolled ? Math.round(stats.attended / stats.enrolled * 100) : 0 %>% attendance</div></div>
+  <div class="stat"><div class="label">Absent</div><div class="value"><%= stats.absent %></div></div>
+  <div class="stat"><div class="label">Average</div><div class="value"><%= stats.average ?? '—' %><%= stats.average !== null ? '%' : '' %></div><div class="hint">median <%= stats.median ?? '—' %><%= stats.median !== null ? '%' : '' %></div></div>
+  <div class="stat"><div class="label">High / Low</div><div class="value" style="font-size: 1.2rem"><%= stats.highest ?? '—' %> / <%= stats.lowest ?? '—' %></div><div class="hint">percent</div></div>
+  <div class="stat"><div class="label">Passed</div><div class="value"><%= stats.passed %>/<%= stats.submitted %></div><div class="hint">pass mark <%= quiz.pass_percent %>%</div></div>
+</div>
+
+<div class="grid-3 mb-2">
+  <div class="card"><div class="card-head"><h3>Score distribution</h3></div><div class="chart-box"><canvas data-chart="results-distribution" role="img" aria-label="Number of students in each score range"></canvas></div></div>
+  <div class="card"><div class="card-head"><h3>Questions answered correctly</h3></div><div class="chart-box"><canvas data-chart="results-questions" role="img" aria-label="Percent of students who answered each question correctly"></canvas></div></div>
+  <div class="card"><div class="card-head"><h3>Attendance</h3></div><div class="chart-box"><canvas data-chart="results-attendance" role="img" aria-label="Submitted, in progress and absent students"></canvas></div></div>
+</div>
+
+<div class="card pad-0 mb-2">
+  <div class="table-tools">
+    <strong>Student results</strong>
+    <span class="spacer"></span>
+    <input type="search" placeholder="Search name, email, ID…" data-filter-table="#results-table" data-status-select="#status-filter" aria-label="Search students">
+    <select id="status-filter" style="max-width: 180px" aria-label="Filter by status">
+      <option value="">All students</option><option value="submitted">Submitted</option><option value="absent">Absent</option><option value="in_progress">In progress</option><option value="pass">Passed</option><option value="fail">Failed</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table class="table stack-mobile" id="results-table" data-sortable>
+      <thead><tr>
+        <th data-sort="number" class="num">Rank</th><th data-sort="text">Student</th><th data-sort="text">ID</th><th data-sort="text">Status</th>
+        <th data-sort="number" class="num">Score</th><th data-sort="number" class="num">%</th><th data-sort="number" class="num">✓ / ✗ / –</th>
+        <th data-sort="number" class="num">Time</th><th data-sort="number" class="num">Tab switches</th><th data-sort="number">Submitted</th><th></th>
+      </tr></thead>
+      <tbody>
+        <% rows.slice().sort((a, b) => (a.rank ?? 1e9) - (b.rank ?? 1e9) || a.name.localeCompare(b.name)).forEach((r) => {
+             const st = !r.status ? 'absent' : r.status === 'in_progress' ? 'in_progress' : (r.passed ? 'pass' : 'fail'); %>
+          <tr class="<%= !r.status ? 'row-absent' : '' %>" data-status="<%= st === 'pass' || st === 'fail' ? 'submitted' : st %>" data-result="<%= st %>">
+            <td data-label="Rank" class="num" data-value="<%= r.rank ?? 99999 %>"><%= r.rank ?? '—' %></td>
+            <td data-label="Student"><strong><%= r.name %></strong><div class="muted small"><%= r.email %></div></td>
+            <td data-label="ID"><%= r.institution_id || '—' %></td>
+            <td data-label="Status">
+              <% if (!r.status) { %><span class="badge">Absent</span>
+              <% } else if (r.status === 'in_progress') { %><span class="badge badge-live">Taking now</span>
+              <% } else { %><span class="badge <%= r.passed ? 'badge-pass' : 'badge-fail' %>"><%= r.passed ? 'Pass' : 'Fail' %></span><% if (r.status === 'auto_submitted') { %> <span class="muted small" title="Submitted automatically when time ran out">⏱ auto</span><% } %><% } %>
+            </td>
+            <td data-label="Score" class="num" data-value="<%= r.score ?? -1 %>"><%= r.percent !== null ? `${r.score}/${r.max_score}` : '—' %></td>
+            <td data-label="%" class="num" data-value="<%= r.percent ?? -1 %>"><%= r.percent !== null ? `${r.percent}%` : '—' %></td>
+            <td data-label="✓ / ✗ / –" class="num" data-value="<%= r.correct_count ?? -1 %>"><%= r.percent !== null ? `${r.correct_count} / ${r.wrong_count} / ${r.unanswered_count}` : '—' %></td>
+            <td data-label="Time" class="num" data-value="<%= r.time_taken_ms ?? -1 %>"><%= fmtDuration(r.time_taken_ms) %></td>
+            <td data-label="Tab switches" class="num" data-value="<%= r.status ? r.tab_switches : -1 %>"><% if (r.status) { %><span class="<%= r.tab_switches >= 3 ? 'badge badge-bad' : r.tab_switches ? 'badge badge-ok' : '' %>"><%= r.tab_switches %></span><% } else { %>—<% } %></td>
+            <td data-label="Submitted" data-value="<%= r.submitted_at || 0 %>"><% if (r.submitted_at) { %><time data-ts="<%= r.submitted_at %>"><%= fmtDate(r.submitted_at) %></time><% } else { %>—<% } %></td>
+            <td><% if (r.attempt_id) { %><a class="btn btn-ghost btn-sm" href="/faculty/quizzes/<%= quiz.id %>/attempts/<%= r.attempt_id %>">Answers</a><% } %></td>
+          </tr>
+        <% }) %>
+        <% if (!rows.length) { %><tr><td colspan="11" class="center muted">No students in this classroom yet.</td></tr><% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card pad-0">
+  <div class="card-head" style="padding: 18px 18px 0"><h2>Question analysis</h2><span class="muted small">Low % correct can mean a hard or unclear question</span></div>
+  <div class="table-wrap">
+    <table class="table stack-mobile">
+      <thead><tr><th>#</th><th>Question</th><th class="num">% correct</th><th>How students answered</th></tr></thead>
+      <tbody>
+        <% questionStats.forEach((q) => { %>
+          <tr>
+            <td data-label="#"><strong>Q<%= q.number %></strong></td>
+            <td data-label="Question" class="block-mobile" style="max-width: 360px"><%= q.text %></td>
+            <td data-label="% correct" class="num"><% if (q.correctPercent !== null) { %><span class="badge badge-<%= scoreClass(q.correctPercent) %>"><%= q.correctPercent %>%</span><% } else { %>—<% } %></td>
+            <td data-label="Answers" class="block-mobile" style="min-width: 220px">
+              <% q.options.forEach((o, j) => { const share = stats.submitted ? Math.round(o.count / stats.submitted * 100) : 0; %>
+                <div class="small" style="margin-bottom: 4px"><span style="<%= o.is_correct ? 'color: var(--success); font-weight: 700' : '' %>"><%= String.fromCharCode(65 + j) %>. <%= o.text %><%= o.is_correct ? ' ✓' : '' %></span> <span class="muted">(<%= o.count %>)</span>
+                  <div class="progress <%= o.is_correct ? 'good' : '' %>" style="height: 5px"><span style="width: <%= share %>%"></span></div></div>
+              <% }) %>
+              <div class="muted small">Skipped: <%= q.skipped %></div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script type="application/json" id="chart-data"><%- JSON.stringify(chartData).replace(/</g, '\\u003c') %></script>
+<%- include('../partials/foot', { scripts: ['/static/vendor/chart.umd.min.js', '/static/js/charts.js'] }) %>

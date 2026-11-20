@@ -1,0 +1,51 @@
+<%- include('../partials/head') %>
+<div class="card classroom-card mb-2">
+  <div class="banner tall" <%- include('../partials/classroom-banner', { id: classroom.id }) %>><div><div class="small" style="opacity: .85"><a href="/student/classrooms" style="color: #fff">Classrooms</a> /</div><span style="font-size: 1.4rem"><%= classroom.name %></span></div></div>
+  <div class="row between">
+    <div class="muted"><%= classroom.subject || '' %><%= classroom.subject ? ' · ' : '' %>Taught by <strong><%= classroom.faculty_name %></strong></div>
+    <form method="post" action="/student/classrooms/<%= classroom.id %>/leave" data-confirm="You'll stop seeing this classroom's quizzes. Your past results are kept." data-confirm-label="Leave classroom" data-danger>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="btn btn-ghost btn-sm">Leave</button>
+    </form>
+  </div>
+  <% if (classroom.description) { %><p class="mt-1 mb-0 pre-line"><%= classroom.description %></p><% } %>
+</div>
+
+<nav class="tabs" aria-label="Classroom sections">
+  <a href="?tab=quizzes" class="<%= tab === 'quizzes' ? 'active' : '' %>">Quizzes <span class="count"><%= quizzes.length %></span></a>
+  <a href="?tab=announcements" class="<%= tab === 'announcements' ? 'active' : '' %>">Announcements <span class="count"><%= announcements.length %></span></a>
+  <% if (leaderboard) { %><a href="?tab=leaderboard" class="<%= tab === 'leaderboard' ? 'active' : '' %>">Leaderboard</a><% } %>
+</nav>
+
+<% if (tab === 'announcements') { %>
+  <div class="card">
+    <% if (!announcements.length) { %><div class="empty"><div class="big">📢</div>No announcements yet.</div><% } %>
+    <% announcements.forEach((a) => { %>
+      <div class="announcement"><h3><%= a.title %></h3><div class="muted small mb-1"><%= a.author %> · <time data-ts="<%= a.created_at %>"><%= fmtDate(a.created_at) %></time></div><p class="pre-line mb-0"><%= a.body %></p></div>
+    <% }) %>
+  </div>
+<% } else if (tab === 'leaderboard' && leaderboard) { %>
+  <div class="card pad-0">
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>#</th><th>Student</th><th class="num">Quizzes</th><th class="num">Total points</th><th class="num">Average</th></tr></thead>
+        <tbody>
+          <% leaderboard.forEach((r, i) => { %>
+            <tr style="<%= r.student_id === user.id ? 'background: var(--primary-soft)' : '' %>">
+              <td class="rank-<%= i + 1 %>"><strong><%= i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1 %></strong></td>
+              <td><%= r.name %><%= r.student_id === user.id ? ' (you)' : '' %></td>
+              <td class="num"><%= r.quizzes %></td><td class="num"><%= r.total_score %></td><td class="num"><%= r.avg_percent ?? '—' %><%= r.avg_percent !== null ? '%' : '' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small" style="padding: 12px 16px; margin: 0">Counts quizzes that have closed. Top 10 shown.</p>
+  </div>
+<% } else { %>
+  <div class="card">
+    <% if (!quizzes.length) { %><div class="empty"><div class="big">📝</div>No quizzes have been published here yet.</div>
+    <% } else { %><ul class="list"><% quizzes.slice().reverse().forEach((q) => { %><%- include('../partials/student-quiz-row', { q }) %><% }) %></ul><% } %>
+  </div>
+<% } %>
+<%- include('../partials/foot') %>

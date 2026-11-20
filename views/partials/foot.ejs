@@ -1,0 +1,15 @@
+  </div>
+</main>
+<% if (typeof bare === 'undefined' || !bare) { %>
+<footer class="site-footer">
+  <div class="container row between">
+    <span><%= appName %> · Online quiz management</span>
+    <span>Times shown in your local timezone</span>
+  </div>
+</footer>
+<% } %>
+<script src="/static/js/app.js"></script>
+<% if (typeof scripts !== 'undefined') { scripts.forEach((s) => { %><script src="<%= s %>"></script>
+<% }) } %>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<%- include('../partials/head') %>
+<div class="card classroom-card mb-2">
+  <div class="banner tall" <%- include('../partials/classroom-banner', { id: classroom.id }) %>><div><div class="small" style="opacity: .85"><a href="/faculty" style="color: #fff">Dashboard</a> /</div><span style="font-size: 1.4rem"><%= classroom.name %></span></div></div>
+  <div class="row between">
+    <div class="code-box">
+      <div><div class="muted small">Join code</div><div class="join-code"><%= classroom.code %></div></div>
+      <button type="button" class="btn btn-outline btn-sm" data-copy="<%= classroom.code %>">Copy code</button>
+    </div>
+    <a class="btn btn-primary" href="/faculty/classrooms/<%= classroom.id %>/quizzes/new">+ New quiz</a>
+  </div>
+  <p class="muted small mt-1 mb-0">Students join from <strong>Classrooms → Join</strong> using this code. <%= classroom.subject ? `Subject: ${classroom.subject}.` : '' %></p>
+</div>
+
+<nav class="tabs" aria-label="Classroom sections">
+  <% [['quizzes', 'Quizzes', quizzes.length], ['students', 'Students', students.length], ['announcements', 'Announcements', announcements.length], ['leaderboard', 'Leaderboard', null], ['settings', 'Settings', null]].forEach(([key, label, n]) => { %>
+    <a href="?tab=<%= key %>" class="<%= tab === key ? 'active' : '' %>"><%= label %><% if (n !== null) { %> <span class="count"><%= n %></span><% } %></a>
+  <% }) %>
+</nav>
+
+<% if (tab === 'quizzes') { %>
+  <div class="card">
+    <% if (!quizzes.length) { %>
+      <div class="empty"><div class="big">📝</div>No quizzes yet.<br><a class="btn btn-primary mt-2" href="/faculty/classrooms/<%= classroom.id %>/quizzes/new">Create the first quiz</a></div>
+    <% } else { %>
+      <ul class="list">
+        <% quizzes.forEach((q) => { %>
+          <li class="quiz-item">
+            <div class="info">
+              <a class="title" href="/faculty/quizzes/<%= q.id %>"><%= q.title %></a>
+              <div class="meta">
+                <span>❓ <%= q.question_count %> questions</span><span>⏱ <%= q.duration_minutes %> min</span>
+                <span>🗓 <time data-ts="<%= q.start_at %>"><%= fmtDate(q.start_at) %></time></span>
+                <% if (q.status !== 'draft') { %><span>👥 <%= q.attended %>/<%= students.length %> attended</span><% } %>
+                <% if (q.avg_percent !== null) { %><span>📊 avg <%= Math.round(q.avg_percent * 10) / 10 %>%</span><% } %>
+              </div>
+            </div>
+            <div class="row">
+              <%- include('../partials/status-badge', { status: q.status }) %>
+              <a class="btn btn-outline btn-sm" href="/faculty/quizzes/<%= q.id %>">Edit</a>
+              <% if (q.status !== 'draft') { %><a class="btn btn-primary btn-sm" href="/faculty/quizzes/<%= q.id %>/results">Results</a><% } %>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </div>
+<% } else if (tab === 'students') { %>
+  <div class="card pad-0">
+    <% if (!students.length) { %>
+      <div class="empty"><div class="big">👥</div>No students yet. Share the join code <strong class="mono"><%= classroom.code %></strong>.</div>
+    <% } else { %>
+      <div class="table-tools"><input type="search" placeholder="Search students…" data-filter-table="#students-table" aria-label="Search students"><span class="muted small"><%= students.length %> enrolled</span></div>
+      <div class="table-wrap">
+        <table class="table stack-mobile" id="students-table" data-sortable>
+          <thead><tr><th data-sort="text">Name</th><th data-sort="text">Email</th><th data-sort="text">ID</th><th data-sort="number" class="num">Quizzes taken</th><th data-sort="number" class="num">Average</th><th data-sort="number">Joined</th><th></th></tr></thead>
+          <tbody>
+            <% students.forEach((s) => { %>
+              <tr>
+                <td data-label="Name"><div class="row"><span class="avatar" style="width: 28px; height: 28px; font-size: .7rem"><%= initials(s.name) %></span><%= s.name %></div></td>
+                <td data-label="Email"><%= s.email %></td>
+                <td data-label="ID"><%= s.institution_id || '—' %></td>
+                <td data-label="Quizzes taken" class="num"><%= s.taken %></td>
+                <td data-label="Average" class="num" data-value="<%= s.avg_percent ?? -1 %>"><% if (s.avg_percent !== null) { %><span class="badge badge-<%= scoreClass(s.avg_percent) %>"><%= Math.round(s.avg_percent * 10) / 10 %>%</span><% } else { %>—<% } %></td>
+                <td data-label="Joined" data-value="<%= s.joined_at %>"><time data-ts="<%= s.joined_at %>" data-format="date"><%= fmtDate(s.joined_at) %></time></td>
+                <td>
+                  <form method="post" action="/faculty/classrooms/<%= classroom.id %>/students/<%= s.id %>/remove" data-confirm="Remove <%= s.name %> from this classroom? Their past results are kept." data-confirm-label="Remove" data-danger>
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-ghost btn-sm">Remove</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+<% } else if (tab === 'announcements') { %>
+  <div class="layout-side">
+    <div class="card">
+      <% if (!announcements.length) { %><div class="empty"><div class="big">📢</div>No announcements yet.</div><% } %>
+      <% announcements.forEach((a) => { %>
+        <div class="announcement">
+          <div class="row between"><h3 class="mb-0"><%= a.title %></h3>
+            <form method="post" action="/faculty/classrooms/<%= classroom.id %>/announcements/<%= a.id %>/delete" data-confirm="Delete this announcement?" data-confirm-label="Delete" data-danger>
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-ghost btn-sm">Delete</button>
+            </form>
+          </div>
+          <div class="muted small mb-1"><time data-ts="<%= a.created_at %>"><%= fmtDate(a.created_at) %></time></div>
+          <p class="pre-line mb-0"><%= a.body %></p>
+        </div>
+      <% }) %>
+    </div>
+    <div class="card">
+      <h2>Post an announcement</h2>
+      <form method="post" action="/faculty/classrooms/<%= classroom.id %>/announcements">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="field"><label for="a-title">Title</label><input id="a-title" name="title" type="text" maxlength="150" required></div>
+        <div class="field"><label for="a-body">Message</label><textarea id="a-body" name="body" maxlength="5000" rows="5" required></textarea></div>
+        <button class="btn btn-primary btn-block">Post &amp; notify students</button>
+      </form>
+    </div>
+  </div>
+<% } else if (tab === 'leaderboard') { %>
+  <div class="card pad-0">
+    <% if (!leaderboard.length) { %><div class="empty">No students yet.</div><% } else { %>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>#</th><th>Student</th><th class="num">Quizzes</th><th class="num">Total points</th><th class="num">Average</th></tr></thead>
+          <tbody>
+            <% leaderboard.forEach((r, i) => { %>
+              <tr><td><strong><%= i < 3 && r.quizzes ? ['🥇', '🥈', '🥉'][i] : i + 1 %></strong></td><td><%= r.name %></td><td class="num"><%= r.quizzes %></td><td class="num"><%= r.total_score %></td><td class="num"><%= r.avg_percent ?? '—' %><%= r.avg_percent !== null ? '%' : '' %></td></tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small" style="padding: 12px 16px; margin: 0">Based on closed quizzes. Students <%= classroom.leaderboard_enabled ? 'can' : 'cannot' %> see the top 10 (change in Settings).</p>
+    <% } %>
+  </div>
+<% } else { %>
+  <div class="grid-2">
+    <div class="card">
+      <h2>Classroom settings</h2>
+      <form method="post" action="/faculty/classrooms/<%= classroom.id %>/edit" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <%- include('../partials/classroom-fields', { values: classroom }) %>
+        <button class="btn btn-primary mt-1">Save settings</button>
+      </form>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h2>Join code</h2>
+        <p class="muted">Make a new code if the current one was shared too widely. The old code stops working; students already in the classroom stay.</p>
+        <form method="post" action="/faculty/classrooms/<%= classroom.id %>/regenerate-code" data-confirm="The current code will stop working immediately." data-confirm-label="Generate new code">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-outline">Generate new code</button>
+        </form>
+      </div>
+      <div class="card" style="border-color: color-mix(in srgb, var(--danger) 40%, var(--border))">
+        <h2 style="color: var(--danger)">Delete classroom</h2>
+        <p class="muted">Permanently deletes this classroom with all its quizzes, results and announcements.</p>
+        <form method="post" action="/faculty/classrooms/<%= classroom.id %>/delete">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <div class="field"><label for="confirm_name">Type <strong><%= classroom.name %></strong> to confirm</label><input id="confirm_name" name="confirm_name" type="text" autocomplete="off"></div>
+          <button class="btn btn-danger">Delete classroom</button>
+        </form>
+      </div>
+    </div>
+  </div>
+<% } %>
+<%- include('../partials/foot') %>

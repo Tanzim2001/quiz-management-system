@@ -1,0 +1,56 @@
+<% const lockedScoring = typeof locked !== 'undefined' && locked; %>
+<div class="form-grid">
+  <div class="field span-2 <%= errors.title ? 'has-error' : '' %>">
+    <label for="title">Quiz title</label>
+    <input id="title" name="title" type="text" required maxlength="150" value="<%= values.title || '' %>" placeholder="e.g. Midterm practice quiz">
+    <%- include('field-error', { name: 'title' }) %>
+  </div>
+  <div class="field span-2 <%= errors.description ? 'has-error' : '' %>">
+    <label for="description">Instructions <span class="muted">(optional)</span></label>
+    <textarea id="description" name="description" rows="3" maxlength="3000" placeholder="Shown to students before they start"><%= values.description || '' %></textarea>
+  </div>
+  <div class="field <%= errors.start_at ? 'has-error' : '' %>">
+    <label for="start_at">Opens at</label>
+    <input id="start_at" name="start_at" type="datetime-local" required data-ts="<%= values.start_at || '' %>" value="<%= toInputValue(values.start_at) %>">
+    <%- include('field-error', { name: 'start_at' }) %>
+  </div>
+  <div class="field <%= errors.end_at ? 'has-error' : '' %>">
+    <label for="end_at">Closes at</label>
+    <input id="end_at" name="end_at" type="datetime-local" required data-ts="<%= values.end_at || '' %>" value="<%= toInputValue(values.end_at) %>">
+    <div class="help">Students must start before this time; attempts end at this time at the latest.</div>
+    <%- include('field-error', { name: 'end_at' }) %>
+  </div>
+  <div class="field <%= errors.duration_minutes ? 'has-error' : '' %>">
+    <label for="duration_minutes">Time limit (minutes)</label>
+    <input id="duration_minutes" name="duration_minutes" type="number" min="1" max="600" required value="<%= values.duration_minutes || '' %>">
+    <div class="help">The countdown each student gets once they press Start.</div>
+    <%- include('field-error', { name: 'duration_minutes' }) %>
+  </div>
+  <div class="field">
+    <label for="pass_percent">Pass mark (%)</label>
+    <input id="pass_percent" name="pass_percent" type="number" min="0" max="100" value="<%= values.pass_percent ?? 40 %>">
+  </div>
+  <div class="field">
+    <label for="negative_marking">Negative marking</label>
+    <select id="negative_marking" name="negative_marking" <%= lockedScoring ? 'disabled' : '' %>>
+      <% [[0, 'None'], [0.25, '−25% of question marks per wrong answer'], [0.33, '−33% per wrong answer'], [0.5, '−50% per wrong answer'], [1, '−100% per wrong answer']].forEach(([v, l]) => { %>
+        <option value="<%= v %>" <%= Number(values.negative_marking) === v ? 'selected' : '' %>><%= l %></option>
+      <% }) %>
+    </select>
+    <div class="help">Skipped questions are never penalised. Totals never go below 0.</div>
+  </div>
+  <div class="field">
+    <label for="review_policy">Show correct answers to students</label>
+    <select id="review_policy" name="review_policy">
+      <option value="after_close" <%= values.review_policy === 'after_close' ? 'selected' : '' %>>After the quiz closes (recommended)</option>
+      <option value="after_submit" <%= values.review_policy === 'after_submit' ? 'selected' : '' %>>Immediately after they submit</option>
+      <option value="never" <%= values.review_policy === 'never' ? 'selected' : '' %>>Never (score only)</option>
+    </select>
+  </div>
+  <div class="field span-2">
+    <span class="label">Anti-cheating</span>
+    <label class="check"><input type="checkbox" name="shuffle_questions" value="1" <%= values.shuffle_questions ? 'checked' : '' %> <%= lockedScoring ? 'disabled' : '' %>><span>Shuffle question order for each student</span></label>
+    <label class="check"><input type="checkbox" name="shuffle_options" value="1" <%= values.shuffle_options ? 'checked' : '' %> <%= lockedScoring ? 'disabled' : '' %>><span>Shuffle answer options for each student</span></label>
+    <p class="help mb-0">Tab switches are always recorded and shown in results.<%= lockedScoring ? ' Shuffling and negative marking are locked because students have already started.' : '' %></p>
+  </div>
+</div>

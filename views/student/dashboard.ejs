@@ -1,0 +1,109 @@
+<%- include('../partials/head') %>
+<div class="page-head">
+  <div><h1>Hi, <%= user.name.split(' ')[0] %> 👋</h1><p class="sub">Here's how you're doing.</p></div>
+  <a class="btn btn-primary" href="/student/classrooms">+ Join a classroom</a>
+</div>
+
+<% if (live.length) { %>
+  <div class="card mb-2" style="border-color: color-mix(in srgb, var(--danger) 35%, var(--border))">
+    <div class="card-head"><h2>🔴 Live now</h2></div>
+    <ul class="list"><% live.forEach((q) => { %><%- include('../partials/student-quiz-row', { q }) %><% }) %></ul>
+  </div>
+<% } %>
+
+<div class="stats-row mb-2">
+  <div class="stat"><div class="ico">📝</div><div><div class="label">Quizzes taken</div><div class="value"><%= analytics.summary.taken %></div><div class="hint"><%= analytics.summary.missed %> missed</div></div></div>
+  <div class="stat"><div class="ico">📊</div><div><div class="label">Average</div><div class="value"><%= analytics.summary.average ?? '—' %><%= analytics.summary.average !== null ? '%' : '' %></div><div class="hint">across all quizzes</div></div></div>
+  <div class="stat"><div class="ico">🏆</div><div><div class="label">Best score</div><div class="value"><%= analytics.summary.best ?? '—' %><%= analytics.summary.best !== null ? '%' : '' %></div><div class="hint"><%= analytics.summary.passed %> passed</div></div></div>
+  <div class="stat"><div class="ico">🎯</div><div><div class="label">Accuracy</div><div class="value"><%= analytics.summary.accuracy ?? '—' %><%= analytics.summary.accuracy !== null ? '%' : '' %></div><div class="hint">of answered questions</div></div></div>
+</div>
+
+<div class="layout-side">
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>Performance over time</h2><span class="muted small">You vs. class average</span></div>
+      <% if (analytics.attempts.length) { %>
+        <div class="chart-box"><canvas data-chart="student-timeline" aria-label="Line chart of your quiz scores compared with class average" role="img"></canvas></div>
+      <% } else { %>
+        <div class="empty"><div class="big">📈</div>Your scores will appear here after your first quiz.</div>
+      <% } %>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Average by classroom</h3></div>
+        <% if (analytics.byClassroom.length) { %><div class="chart-box"><canvas data-chart="student-classroom" role="img" aria-label="Average score per classroom"></canvas></div>
+        <% } else { %><p class="muted">No data yet.</p><% } %>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Answer breakdown</h3></div>
+        <% if (analytics.attempts.length) { %><div class="chart-box"><canvas data-chart="student-outcome" role="img" aria-label="Correct, wrong and skipped answers"></canvas></div>
+        <% } else { %><p class="muted">No data yet.</p><% } %>
+      </div>
+    </div>
+    <div class="card pad-0">
+      <div class="card-head" style="padding: 18px 18px 0"><h2>Quiz history</h2></div>
+      <% if (!analytics.attempts.length) { %>
+        <div class="empty">No completed quizzes yet.</div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="table stack-mobile" data-sortable>
+            <thead><tr><th data-sort="text">Quiz</th><th data-sort="text">Classroom</th><th data-sort="number" class="num">Score</th><th data-sort="number" class="num">%</th><th data-sort="number" class="num">Class avg</th><th data-sort="number" class="num">Rank</th><th data-sort="number">Date</th><th></th></tr></thead>
+            <tbody>
+              <% analytics.attempts.slice().reverse().forEach((a) => { %>
+                <tr>
+                  <td data-label="Quiz"><strong><%= a.title %></strong></td>
+                  <td data-label="Classroom"><%= a.classroom_name %></td>
+                  <td data-label="Score" class="num"><%= a.score %>/<%= a.max_score %></td>
+                  <td data-label="%" class="num" data-value="<%= a.percent %>"><span class="badge badge-<%= scoreClass(a.percent) %>"><%= a.percent %>%</span></td>
+                  <td data-label="Class avg" class="num"><%= a.class_avg ?? '—' %>%</td>
+                  <td data-label="Rank" class="num" data-value="<%= a.rank %>"><%= a.rank %>/<%= a.participants %></td>
+                  <td data-label="Date" class="nowrap" data-value="<%= a.submitted_at %>"><time data-ts="<%= a.submitted_at %>" data-format="date"><%= fmtDate(a.submitted_at) %></time></td>
+                  <td><a class="btn btn-ghost btn-sm" href="/student/attempts/<%= a.id %>/result">Details</a></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="card">
+      <div class="card-head"><h2>🗓️ Upcoming</h2><a class="small" href="/student/quizzes?tab=upcoming">See all</a></div>
+      <% if (!upcoming.length) { %><p class="muted mb-0">No upcoming quizzes scheduled.</p><% } else { %>
+        <ul class="list">
+          <% upcoming.forEach((q) => { %>
+            <li>
+              <a href="/student/quizzes/<%= q.id %>"><strong><%= q.title %></strong></a>
+              <div class="muted small"><%= q.classroom_name %> · <%= q.duration_minutes %> min</div>
+              <div class="small mt-1"><time data-ts="<%= q.start_at %>"><%= fmtDate(q.start_at) %></time> · <span class="badge badge-upcoming">in <span data-countdown="<%= q.start_at %>" data-reload></span></span></div>
+            </li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>📢 Announcements</h2></div>
+      <% if (!announcements.length) { %><p class="muted mb-0">Nothing new.</p><% } else { %>
+        <% announcements.forEach((a) => { %>
+          <div class="announcement">
+            <h3><a href="/student/classrooms/<%= a.classroom_id %>?tab=announcements"><%= a.title %></a></h3>
+            <div class="muted small"><%= a.classroom_name %> · <time data-ts="<%= a.created_at %>" data-format="relative"></time></div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>My classrooms</h2><a class="small" href="/student/classrooms">Manage</a></div>
+      <% if (!classrooms.length) { %>
+        <p class="muted">You haven't joined any classrooms yet.</p>
+        <a class="btn btn-primary btn-block" href="/student/classrooms">Join with a code</a>
+      <% } else { %>
+        <ul class="list"><% classrooms.forEach((c) => { %><li><a href="/student/classrooms/<%= c.id %>"><strong><%= c.name %></strong></a><div class="muted small"><%= c.subject || '' %><%= c.subject ? ' · ' : '' %><%= c.faculty_name %></div></li><% }) %></ul>
+      <% } %>
+    </div>
+  </div>
+</div>
+<script type="application/json" id="chart-data"><%- JSON.stringify(chartData).replace(/</g, '\\u003c') %></script>
+<%- include('../partials/foot', { scripts: ['/static/vendor/chart.umd.min.js', '/static/js/charts.js'] }) %>

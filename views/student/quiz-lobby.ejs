@@ -1,0 +1,56 @@
+<%- include('../partials/head') %>
+<div class="breadcrumb"><a href="/student/classrooms/<%= quiz.classroom_id %>"><%= quiz.classroom_name %></a> / Quiz</div>
+<div class="layout-side">
+  <div class="card">
+    <div class="row between mb-1"><%- include('../partials/status-badge', { status }) %><span class="muted small">by <%= quiz.faculty_name %></span></div>
+    <h1><%= quiz.title %></h1>
+    <% if (quiz.description) { %><p class="pre-line muted"><%= quiz.description %></p><% } %>
+    <dl class="kv mt-2">
+      <dt>Questions</dt><dd><%= quiz.question_count %> (<%= quiz.total_marks %> marks)</dd>
+      <dt>Time limit</dt><dd><%= quiz.duration_minutes %> minutes</dd>
+      <dt>Opens</dt><dd><time data-ts="<%= quiz.start_at %>"><%= fmtDate(quiz.start_at) %></time></dd>
+      <dt>Closes</dt><dd><time data-ts="<%= quiz.end_at %>"><%= fmtDate(quiz.end_at) %></time></dd>
+      <dt>Pass mark</dt><dd><%= quiz.pass_percent %>%</dd>
+      <dt>Wrong answers</dt><dd><%= quiz.negative_marking ? `−${Math.round(quiz.negative_marking * 100)}% of the question's marks` : 'No penalty' %></dd>
+    </dl>
+  </div>
+  <div class="card center">
+    <% if (status === 'upcoming') { %>
+      <h2>Opens in</h2>
+      <div class="countdown-big" data-countdown="<%= quiz.start_at %>" data-reload>--:--</div>
+      <p class="muted small mt-1">This page refreshes automatically when the quiz opens.</p>
+      <button class="btn btn-primary btn-lg btn-block" disabled>Start quiz</button>
+    <% } else if (status === 'live') { %>
+      <% if (attempt) { %>
+        <h2>You have an attempt in progress</h2>
+        <p class="muted">Your timer kept running while you were away. Pick up where you left off.</p>
+        <form method="post" action="/student/quizzes/<%= quiz.id %>/start">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="btn btn-primary btn-lg btn-block">Resume quiz</button>
+        </form>
+      <% } else { %>
+        <h2>Ready?</h2>
+        <p class="muted">The quiz closes in <strong data-countdown="<%= quiz.end_at %>" data-reload></strong>.</p>
+        <% const effective = Math.min(quiz.duration_minutes * 60000, quiz.end_at - serverNow); %>
+        <% if (effective < quiz.duration_minutes * 60000) { %>
+          <div class="alert alert-warning small mb-2">The quiz closes soon, so you'll only get about <%= Math.max(1, Math.floor(effective / 60000)) %> minutes.</div>
+        <% } %>
+        <form method="post" action="/student/quizzes/<%= quiz.id %>/start" data-confirm="The <%= quiz.duration_minutes %>-minute timer starts as soon as you begin and keeps running even if you close the page. You get one attempt." data-confirm-label="Start now">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="btn btn-primary btn-lg btn-block">Start quiz</button>
+        </form>
+      <% } %>
+    <% } else { %>
+      <h2>This quiz has closed</h2>
+      <p class="muted mb-0">You didn't take this quiz before it closed.</p>
+    <% } %>
+    <hr>
+    <ul class="muted small" style="text-align: left; padding-left: 18px; margin: 0">
+      <li>Answers save automatically as you go.</li>
+      <li>When the timer reaches zero your answers are submitted for you.</li>
+      <li>Leaving the quiz tab is recorded and visible to your teacher.</li>
+      <% if (quiz.shuffle_questions) { %><li>Question order is different for each student.</li><% } %>
+    </ul>
+  </div>
+</div>
+<%- include('../partials/foot') %>
